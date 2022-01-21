@@ -70,7 +70,8 @@ class TabularModel:
                 Typically used when providing Custom Models
         """
         super().__init__()
-        self.exp_manager = ExperimentRunManager()
+        a = ExperimentRunManager()
+        self.exp_manager = a # Is this the version that is running?
         if config is None:
             assert (
                 (data_config is not None)
