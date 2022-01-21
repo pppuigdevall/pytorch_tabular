@@ -480,7 +480,7 @@ class OptimizerConfig:
 class ExperimentRunManager:
     def __init__(
         self,
-        exp_version_manager: str = ".pt_tmp/exp_version_manager.yml",
+        exp_version_manager: str = "/usr/src/app/exp_version_manager.yml",
     ) -> None:
         """The manages the versions of the experiments based on the name. It is a simple dictionary(yaml) based lookup.
         Primary purpose is to avoid overwriting of saved models while runing the training without changing the experiment name.
