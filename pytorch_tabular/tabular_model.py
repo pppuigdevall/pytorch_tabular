@@ -312,6 +312,7 @@ class TabularModel:
         self.trainer = pl.Trainer(
             logger=self.logger,
             callbacks=self.callbacks,
+            progress_bar_refresh_rate=0,
             **trainer_args_config,
         )
 
