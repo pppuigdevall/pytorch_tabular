@@ -254,6 +254,10 @@ class TabularModel:
         self, train, validation, test, target_transform=None, train_sampler=None
     ):
         logger.info("Preparing the DataLoaders...")
+        ### TODO change this to all columns
+        train["transport"] = train["transport"].astype(object)
+        validation["transport"] = validation["transport"].astype(object)
+        #test["transport"] = test["transport"].astype(object)
         if (
             hasattr(self, "datamodule")
             and self.datamodule is not None
