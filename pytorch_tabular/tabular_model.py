@@ -440,6 +440,8 @@ class TabularModel:
         """
         seed_everything(seed if seed is not None else self.config.seed)
         print("We are inside fit")
+        import time
+        time.sleep(20)
         train_loader, val_loader = self._pre_fit(
             train,
             validation,
@@ -455,6 +457,7 @@ class TabularModel:
             reset,
             trained_backbone
         )
+        time.sleep(20)
         print("Prefit done")
         self.model.train()
         print("Model train() ran successfully")
