@@ -439,6 +439,7 @@ class TabularModel:
             trained_backbone (pl.LightningModule): this module contains the weights for a pretrained backbone
         """
         seed_everything(seed if seed is not None else self.config.seed)
+        print("We are inside fit")
         train_loader, val_loader = self._pre_fit(
             train,
             validation,
@@ -454,7 +455,9 @@ class TabularModel:
             reset,
             trained_backbone
         )
+        print("Prefit done")
         self.model.train()
+        print("Model train() ran successfully")
         if self.config.auto_lr_find and (not self.config.fast_dev_run):
             self.trainer.tune(self.model, train_loader, val_loader)
             # Parameters in models needs to be initialized again after LR find
