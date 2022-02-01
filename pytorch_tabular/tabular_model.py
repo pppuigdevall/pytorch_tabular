@@ -441,7 +441,7 @@ class TabularModel:
         seed_everything(seed if seed is not None else self.config.seed)
         print("We are inside fit")
         import time
-        time.sleep(20)
+        time.sleep(60)
         print("We are about to do the _pre_fit")
         train_loader, val_loader = self._pre_fit(
             train,
@@ -458,7 +458,7 @@ class TabularModel:
             reset,
             trained_backbone
         )
-        time.sleep(20)
+        time.sleep(60)
         print("Prefit done")
         self.model.train()
         print("Model train() ran successfully")
