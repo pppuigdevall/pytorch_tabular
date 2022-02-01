@@ -442,6 +442,7 @@ class TabularModel:
         print("We are inside fit")
         import time
         time.sleep(20)
+        print("We are about to do the _pre_fit")
         train_loader, val_loader = self._pre_fit(
             train,
             validation,
