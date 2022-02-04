@@ -80,7 +80,7 @@ class ODST(ModuleWithInit):
         )
 
         self.response = nn.Parameter(
-            torch.zeros([num_trees, tree_output_dim, 2 ** depth]), requires_grad=True
+            torch.zeros([num_trees, tree_output_dim, int(2 ** depth)]), requires_grad=True
         )
         initialize_response_(self.response)
 
