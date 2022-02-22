@@ -759,7 +759,7 @@ class TabularModel:
             TabularModel: The saved TabularModel
         """
         config = OmegaConf.load(os.path.join(dir, "config.yml"))
-        datamodule = joblib.load(os.path.join(dir, "datamodule.sav"))
+        load_datamodule = joblib.load(os.path.join(dir, "datamodule.sav"))
         if (
             hasattr(config, "log_target")
             and (config.log_target is not None)
