@@ -105,3 +105,27 @@ def get_gaussian_centers(y, n_components):
 
 def loss_contrastive(y_hat, y):
     return - nn.functional.cosine_similarity(y_hat, y).add_(-1).sum()
+
+
+class BoostedRegressionLoss(nn.Module):
+
+    def __init__(self):
+        super(BoostedRegressionLoss, self).__init__()
+
+    def forward(self, y_hats, y):
+        """
+        Parameters:
+            *   y_hats : Tuple[torch.tensor]
+                Is a tuple of unknown length but it contains the tensors y_i coming from each transformer layer.
+                Each y_i has size (B, 1), so we sum them in the batch direction
+                y0      y1      y   Result
+                y0_b0   y1_b0   y0  y0_b0 + y1_b0 - y0
+                y0_b1   y1_b1   y1  ...
+                y0_b2   y1_b2   y2  ...
+            
+            *   y : torch.tensor 
+                is the ground truth of size (B,1)
+        """
+        stacked_predictions = torch.stack(y_hats)
+        l1 = torch.abs( torch.sum(stacked_predictions, dim=0) - y )
+        return torch.mean(l1)

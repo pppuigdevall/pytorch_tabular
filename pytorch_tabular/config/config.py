@@ -548,7 +548,7 @@ class ModelConfig:
         # default="regression",
         metadata={
             "help": "Specify whether the problem is regression of classification.",
-            "choices": ["regression", "classification", "ssl"],
+            "choices": ["regression", "classification", "ssl", "boosted_regression"],
         }
     )
     ssl_task: Optional[str] = field(

@@ -144,7 +144,7 @@ class TabularModel:
                 raise NotImplementedError(
                     "Multi-Target Classification is not implemented."
                 )
-        if self.config.task == "regression":
+        if self.config.task == "regression" or self.config.task == "boosted_regression":
             if self.config.target_range is not None:
                 if (
                     (len(self.config.target_range) != len(self.config.target))
@@ -661,7 +661,7 @@ class TabularModel:
             if quantile_predictions.ndim == 2:
                 quantile_predictions = quantile_predictions.unsqueeze(-1)
         pred_df = test.copy()
-        if self.config.task == "regression":
+        if self.config.task == "regression" or self.config.task =="boosted_regression":
             point_predictions = point_predictions.numpy()
             # Probabilistic Models are only implemented for Regression
             if is_probabilistic:

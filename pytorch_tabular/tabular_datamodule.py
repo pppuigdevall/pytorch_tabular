@@ -99,7 +99,7 @@ class TabularDatamodule(pl.LightningDataModule):
         Raises:
             NotImplementedError: [description]
         """
-        if self.config.task == "regression":
+        if self.config.task == "regression" or self.config.task == "boosted_regression":
             self.config.output_dim = len(self.config.target)
         elif self.config.task == "classification":
             self.config.output_dim = len(self.train[self.config.target[0]].unique())

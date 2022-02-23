@@ -112,6 +112,10 @@ class BaseModel(pl.LightningModule, metaclass=ABCMeta):
                     prog_bar=False,
                 )
             computed_loss = torch.stack(losses, dim=0).sum()
+
+        elif self.hparams.task == "boosted_regression":
+            computed_loss = self.custom_loss(y_hat, y)
+
         else:
             #TODO loss fails with batch size of 1
             computed_loss = self.loss(y_hat.squeeze(), y.squeeze())
@@ -156,6 +160,36 @@ class BaseModel(pl.LightningModule, metaclass=ABCMeta):
                     )
                     _metrics.append(_metric)
                 avg_metric = torch.stack(_metrics, dim=0).sum()
+            
+            elif self.hparams.task == "boosted_regression":
+                _metrics = []
+                
+                y_hat = torch.sum(torch.stack(y_hat), dim=0)
+                
+                for i in range(self.hparams.output_dim):
+                    if (
+                        metric.__name__
+                        == torchmetrics.functional.mean_squared_log_error.__name__
+                    ):
+                        # MSLE should only be used in strictly positive targets. It is undefined otherwise
+                        _metric = metric(
+                            torch.clamp(y_hat[:, i], min=0),
+                            torch.clamp(y[:, i], min=0),
+                            **metric_params,
+                        )
+                    else:
+                        _metric = metric(y_hat[:, i], y[:, i], **metric_params)
+                    self.log(
+                        f"{tag}_{metric_str}_{i}",
+                        _metric,
+                        on_epoch=True,
+                        on_step=False,
+                        logger=True,
+                        prog_bar=False,
+                    )
+                    _metrics.append(_metric)
+                avg_metric = torch.stack(_metrics, dim=0).sum()
+            
             else:
                 y_hat = nn.Softmax(dim=-1)(y_hat.squeeze())
                 avg_metric = metric(y_hat, y.squeeze(), **metric_params)
@@ -197,10 +231,14 @@ class BaseModel(pl.LightningModule, metaclass=ABCMeta):
         return getattr(ssl, self.hparams.ssl_task)(input_dim=self.backbone.output_dim)(x)
 
     def forward(self, x: Dict):
-        x = self.compute_backbone(x)
-        if self.hparams.task == "ssl":
-            return self.compute_ssl_head(x)
-        return self.compute_head(x)
+        if self.hparams.task == "boosted_regression":
+            y_hats = self.compute_backbone(x)
+            return y_hats # y_hats will be a tuple!!
+        else:
+            x = self.compute_backbone(x)
+            if self.hparams.task == "ssl":
+                return self.compute_ssl_head(x)
+            return self.compute_head(x)
 
     def predict(self, x: Dict, ret_model_output: bool = False):
         assert self.hparams.task != "ssl", "It's not allowed to use the method predict in case of ssl task"
