@@ -20,7 +20,7 @@ from pytorch_lightning.utilities.cloud_io import load as pl_load
 from sklearn.base import TransformerMixin
 from torch import nn
 from tqdm.autonotebook import tqdm
-
+from utils import BoostedRegressionLoss
 import pytorch_tabular.models as models
 from pytorch_tabular.config import (
     DataConfig,
@@ -45,6 +45,7 @@ class TabularModel:
         trainer_config: Optional[Union[TrainerConfig, str]] = None,
         experiment_config: Optional[Union[ExperimentConfig, str]] = None,
         model_callable: Optional[Callable] = None,
+        loss : Optional[nn.Module]=BoostedRegressionLoss,
     ) -> None:
         """The core model which orchestrates everything from initializing the datamodule, the model, trainer, etc.
 
@@ -289,7 +290,7 @@ class TabularModel:
             logger.debug("Re-initializing the model. Trained weights are ignored.")
             self.model = self.model_callable(
                 self.config,
-                custom_loss=loss,
+                custom_loss=self.loss,
                 custom_metrics=metrics,
                 custom_optimizer=optimizer,
                 custom_optimizer_params=optimizer_params,
@@ -374,7 +375,7 @@ class TabularModel:
         train_loader, val_loader = self._prepare_dataloader(
             train, validation, test, target_transform, train_sampler
         )
-        self._prepare_model(loss, metrics, optimizer, optimizer_params, reset, trained_backbone)
+        self._prepare_model(self.loss, metrics, optimizer, optimizer_params, reset, trained_backbone)
 
         if self.track_experiment and self.config.log_target == "wandb":
             self.logger.watch(
@@ -447,7 +448,7 @@ class TabularModel:
             train,
             validation,
             test,
-            loss,
+            self.loss,
             metrics,
             optimizer,
             optimizer_params,
@@ -537,7 +538,7 @@ class TabularModel:
             train,
             validation,
             test,
-            loss,
+            self.loss,
             metrics,
             optimizer,
             optimizer_params,

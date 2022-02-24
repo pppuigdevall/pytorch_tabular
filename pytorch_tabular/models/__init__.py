@@ -14,8 +14,9 @@ from .mixture_density import (
 from .autoint import AutoIntConfig, AutoIntModel
 from .tab_transformer import TabTransformerConfig, TabTransformerModel
 from .ft_transformer import FTTransformerConfig, FTTransformerModel
+from .boosted_transformers import BoostedFTTransformerConfig, BoostedFTTransformerModel
 from .base_model import BaseModel
-from . import category_embedding, node, mixture_density, tabnet, autoint
+from . import category_embedding, node, mixture_density, tabnet, autoint, boosted_transformers
 
 __all__ = [
     "CategoryEmbeddingModel",
@@ -39,10 +40,13 @@ __all__ = [
     "TabTransformerModel",
     "FTTransformerConfig",
     "FTTransformerModel",
+    "BoostedFTTransformerConfig",
+    "BoostedFTTransformerModel",
     "category_embedding",
     "node",
     "mixture_density",
     "tabnet",
     "autoint",
-    "tab_transformer"
+    "tab_transformer",
+    "boosted_transformers",
 ]
