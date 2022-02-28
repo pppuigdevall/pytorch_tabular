@@ -115,7 +115,15 @@ class BaseModel(pl.LightningModule, metaclass=ABCMeta):
 
         elif self.hparams.task == "boosted_regression":
             computed_loss = self.custom_loss(y_hat, y)
-
+            print(computed_loss)
+            self.log(
+                    f"{tag}_loss",
+                    computed_loss,
+                    on_epoch=True,
+                    on_step=False,
+                    logger=True,
+                    prog_bar=True,
+                )
         else:
             #TODO loss fails with batch size of 1
             computed_loss = self.loss(y_hat.squeeze(), y.squeeze())
@@ -233,6 +241,7 @@ class BaseModel(pl.LightningModule, metaclass=ABCMeta):
     def forward(self, x: Dict):
         if self.hparams.task == "boosted_regression":
             y_hats = self.compute_backbone(x)
+            print(y_hats)
             return y_hats # y_hats will be a tuple!!
         else:
             x = self.compute_backbone(x)
@@ -243,8 +252,12 @@ class BaseModel(pl.LightningModule, metaclass=ABCMeta):
     def predict(self, x: Dict, ret_model_output: bool = False):
         assert self.hparams.task != "ssl", "It's not allowed to use the method predict in case of ssl task"
         ret_value = self.forward(x)
-        if ret_model_output:
+        if (ret_model_output) and (not self.hparams.task == "boosted_regression"):
             return ret_value.get("logits"), ret_value
+        elif self.hparams.task == "boosted_regression":
+            ret_value = self.forward(x)
+            ret_value = torch.sum(torch.stack(ret_value), dim=0)
+            return ret_value
         else:
             return ret_value.get("logits")
 
@@ -253,6 +266,9 @@ class BaseModel(pl.LightningModule, metaclass=ABCMeta):
             y = self(batch)["logits"]
             batch_augmented = getattr(augmentations, self.hparams.aug_task)(batch)
             y_hat = self(batch_augmented)["logits"]
+        elif self.hparams.task == "boosted_regression":
+            y = batch["target"]
+            y_hat = self(batch)
         else:
             y = batch["target"]
             y_hat = self(batch)["logits"]

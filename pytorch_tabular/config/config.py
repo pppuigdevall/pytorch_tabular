@@ -641,6 +641,12 @@ class ModelConfig:
                 ["mean_squared_error"] if self.metrics is None else self.metrics
             )
             self.metrics_params = [{}]
+        elif self.task == "boosted_regression":
+            self.loss = "boosted_regression" if self.loss is None else self.loss
+            self.metrics = (
+                ["mean_squared_error"] if self.metrics is None else self.metrics
+            )
+            self.metrics_params = [{}]
         else:
             raise NotImplementedError(
                 f"{self.task} is not a valid task. Should be one of "

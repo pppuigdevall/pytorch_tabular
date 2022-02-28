@@ -220,9 +220,9 @@ class BoostedFTTransformerConfig(ModelConfig):
             "choices": ["kaiming", "xavier", "random"],
         },
     )
-    _module_src: str = field(default="ft_transformer")
-    _model_name: str = field(default="FTTransformerModel")
-    _config_name: str = field(default="FTTransformerConfig")
+    _module_src: str = field(default="boosted_transformers")
+    _model_name: str = field(default="BoostedFTTransformerModel")
+    _config_name: str = field(default="BoostedFTTransformerConfig")
 
 
 # cls = TabTransformerConfig

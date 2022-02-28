@@ -148,6 +148,8 @@ class FTTransformerBackbone(pl.LightningModule):
     def forward(self, x: Dict):
         # (B, N)
         continuous_data, categorical_data = x["continuous"], x["categorical"]
+        ###print(f"continuous data size : {continuous_data.size()}")
+        ###print(f"categorical data size : {categorical_data.size()}")
         x = None
         if self.hparams.categorical_dim > 0:
             x_cat = [
@@ -180,6 +182,7 @@ class FTTransformerBackbone(pl.LightningModule):
         x = self.add_cls(x)
         for i, block in enumerate(self.transformer_blocks):
             x = block(x)
+            ####print(f"Size at the end of block {i} = {x.size()}")
             if self.hparams.attn_feature_importance:
                 self.attention_weights_[i] = block.mha.attn_weights
                 # self.feature_importance_+=block.mha.attn_weights[:,:,:,-1].sum(dim=1)

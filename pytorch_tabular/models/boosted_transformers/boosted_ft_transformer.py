@@ -116,6 +116,36 @@ class BoostedFTTransformerBackbone(pl.LightningModule):
         self.transformer_blocks = OrderedDict()
 
         for i in range(self.hparams.num_attn_blocks):
+            # Final MLP Layers
+            _curr_units = self.hparams.input_embed_dim
+            # Linear Layers
+            layers = []
+            for units in self.hparams.out_ff_layers.split("-"):
+                layers.extend(
+                    _linear_dropout_bn(
+                        self.hparams.out_ff_activation,
+                        self.hparams.out_ff_initialization,
+                        self.hparams.use_batch_norm,
+                        _curr_units,
+                        int(units),
+                        self.hparams.out_ff_dropout,
+                    )
+                )
+                _curr_units = int(units)
+            
+            
+            self.output_dim = _curr_units
+
+            head = nn.Sequential(nn.Dropout(self.hparams.out_ff_dropout),
+                                  nn.Linear(self.output_dim, self.hparams.output_dim))
+            _initialize_layers(
+                self.hparams.out_ff_activation,
+                self.hparams.out_ff_initialization,
+                head,
+            )
+            
+            linear_layers = nn.Sequential(*layers, head)
+
             self.transformer_blocks[f"mha_block_{i}"] = nn.Sequential(TransformerEncoderBlock(
                 input_embed_dim=self.hparams.input_embed_dim,
                 num_heads=self.hparams.num_heads,
@@ -126,14 +156,15 @@ class BoostedFTTransformerBackbone(pl.LightningModule):
                 add_norm_dropout=self.hparams.add_norm_dropout,
                 keep_attn=self.hparams.attn_feature_importance # Can use Attn Weights to derive feature importance
             ),
-            nn.Linear(self.hparams.input_embed_dim, 1)
-            )
+            linear_layers)
+            
+           
+        
         self.transformer_blocks = nn.Sequential(self.transformer_blocks)
         if self.hparams.attn_feature_importance:
             self.attention_weights_ = [None] * self.hparams.num_attn_blocks
         if self.hparams.batch_norm_continuous_input:
             self.normalizing_batch_norm = nn.BatchNorm1d(self.hparams.continuous_dim)
-        
         """
         # Final MLP Layers
         _curr_units = self.hparams.input_embed_dim
@@ -152,12 +183,13 @@ class BoostedFTTransformerBackbone(pl.LightningModule):
             )
             _curr_units = int(units)
         self.linear_layers = nn.Sequential(*layers)
-        self.output_dim = _curr_units
-        """
-
+        self.output_dim = _curr_units"""
+        
     def forward(self, x: Dict):
         # (B, N)
         continuous_data, categorical_data = x["continuous"], x["categorical"]
+        #print(f"continuous data size : {continuous_data.size()}")
+        #print(f"categorical data size : {categorical_data.size()}")
         x = None
         if self.hparams.categorical_dim > 0:
             x_cat = [
@@ -189,16 +221,20 @@ class BoostedFTTransformerBackbone(pl.LightningModule):
 
         x = self.add_cls(x)
         ori_x = x.clone()
+        #print(f"ori_x size: {ori_x.size()}")
         y_hats = []
         for i, block in enumerate(self.transformer_blocks):
-            x = block(ori_x)
+            x = block(ori_x)[:, -1] # Taking only CLS token for the prediction head
+            #print(f"block(ori_x): {x.size()}")
             y_hats.append(x)
             if self.hparams.attn_feature_importance:
-                self.attention_weights_[i] = block.mha.attn_weights
+                #self.attention_weights_[i] = block.mha.attn_weights
+                pass
                 # self.feature_importance_+=block.mha.attn_weights[:,:,:,-1].sum(dim=1)
                 # self._calculate_feature_importance(block.mha.attn_weights)
         if self.hparams.attn_feature_importance:
-            self._calculate_feature_importance()
+            #self._calculate_feature_importance()
+            pass
         # Flatten (Batch, N_Categorical, Hidden) --> (Batch, N_CategoricalxHidden)
         # x = rearrange(x, "b n h -> b (n h)")
         # Taking only CLS token for the prediction head
@@ -225,13 +261,7 @@ class BoostedFTTransformerModel(BaseModel):
         # Backbone
         self.backbone = BoostedFTTransformerBackbone(self.hparams)
         # Adding the last layer
-        self.head = nn.Identiy() # This is not called anywhere so leaving it here in case we need it afterwards
-
-        _initialize_layers(
-            self.hparams.out_ff_activation,
-            self.hparams.out_ff_initialization,
-            self.head,
-        )
+        self.head = None # This is not called anywhere so leaving it here in case we need it afterwards
 
     def extract_embedding(self):
         if self.hparams.categorical_dim > 0:

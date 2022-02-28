@@ -177,7 +177,9 @@ class MultiHeadedAttention(nn.Module):
             self.attn_weights = attn
         out = einsum("b h i j, b h j d -> b h i d", attn, v)
         out = rearrange(out, "b h n d -> b n (h d)", h=h)
-        return self.to_out(out)
+        ret = self.to_out(out)
+        #print("ret.size() ", ret.size())
+        return ret
 
 
 # Slight adaptation from https://github.com/jrzaurin/pytorch-widedeep which in turn adapted from AutoGluon
@@ -267,6 +269,11 @@ class TransformerEncoderBlock(nn.Module):
 
     def forward(self, x):
         y = self.mha(x)
+        #print(f"Transformer Encoder Block, y = self.mha(x) {y.size()}")
         x = self.attn_add_norm(x, y)
+        #print(f"Attention add norm {x.size()}")
         y = self.pos_wise_ff(y)
-        return self.ff_add_norm(x, y)
+        #print(f"y = self.pos_wise_ff(y) {y.size()}")
+        ret = self.ff_add_norm(x, y)
+        #print(f"self.ff_add_norm(x,y) {ret.size()}")
+        return ret

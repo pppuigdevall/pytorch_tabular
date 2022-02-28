@@ -20,7 +20,7 @@ from pytorch_lightning.utilities.cloud_io import load as pl_load
 from sklearn.base import TransformerMixin
 from torch import nn
 from tqdm.autonotebook import tqdm
-from utils import BoostedRegressionLoss
+from pytorch_tabular.utils import BoostedRegressionLoss
 import pytorch_tabular.models as models
 from pytorch_tabular.config import (
     DataConfig,
@@ -71,6 +71,7 @@ class TabularModel:
                 Typically used when providing Custom Models
         """
         super().__init__()
+        self.loss = loss
         a = ExperimentRunManager()
         self.exp_manager = a # Is this the version that is running?
         if config is None:
@@ -643,7 +644,8 @@ class TabularModel:
                         torch.quantile(samples, q=q, dim=-1).unsqueeze(1)
                     )
             else:
-                y_hat, ret_value = self.model.predict(batch, ret_model_output=True)
+                # HERE TODO MONDAY
+                y_hat = self.model.predict(batch)
             if ret_logits:
                 for k, v in ret_value.items():
                     # if k == "backbone_features":
