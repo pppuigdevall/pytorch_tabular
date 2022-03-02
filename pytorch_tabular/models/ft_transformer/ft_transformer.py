@@ -217,7 +217,14 @@ class FTTransformerModel(BaseModel):
         _initialize_layers(
             self.hparams.out_ff_activation,
             self.hparams.out_ff_initialization,
-            self.head,
+            self.head[0],
+        )
+        print("This is a reminder to turn the initialization with zeros OFF ")
+        print("#############################################################")
+        _initialize_layers(
+            self.hparams.out_ff_activation,
+            "zero",
+            self.head[1],
         )
 
     def extract_embedding(self):

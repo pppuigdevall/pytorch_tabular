@@ -1,4 +1,5 @@
 import logging
+from mimetypes import init
 
 import numpy as np
 import pandas as pd
@@ -76,6 +77,8 @@ def _initialize_layers(activation, initialization, layers):
             )
         elif initialization == "random":
             nn.init.normal_(layers.weight)
+        elif initialization == "zero":
+            nn.init.constant_(layers.weight, val=0.0)
 
 
 def _linear_dropout_bn(activation, initialization, use_batch_norm, in_units, out_units, dropout):
