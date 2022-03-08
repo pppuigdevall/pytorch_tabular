@@ -625,7 +625,7 @@ class TabularModel:
             hasattr(self.model.hparams, "_probabilistic")
             and self.model.hparams._probabilistic
         )
-        for batch in tqdm(inference_dataloader, desc="Generating Predictions..."):
+        for batch in inference_dataloader:
             for k, v in batch.items():
                 if isinstance(v, list) and (len(v) == 0):
                     # Skipping empty list
